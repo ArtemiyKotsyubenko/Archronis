@@ -178,16 +178,18 @@ public:
                         if (adapter.is_symbol_code()) {
                             symbol = adapter.get_symbol();
                             fout << symbol;
+                            //std::cout<<symbol<<std::endl;
                         } else {//if delimiter reached -
                             for (unsigned char i = 0; i < 8; ++i) {// read next 8 bits like ASKII symbol code
                                 symbol <<= 1;
                                 symbol |= next_bit();
                             }
-                            if (symbol != 0) {// encoder writes 'empty' bits like 0
+                            //if (symbol != 0) {// encoder writes 'empty' bits like 0
                                 fout << symbol;
-                            } else {
-                                stream_is_active = false;
-                            }
+                                //std::cout<<symbol<<std::endl;
+//                            } else {
+//                                stream_is_active = false;
+//                            }
                         }
                         tree.insert(symbol);
                         adapter.rewind();

@@ -14,6 +14,8 @@ class Huffman_Tree {
 private:
     unsigned int current_empty_value = 255;
 
+    unsigned int size = 0;
+
     enum class Side {
         top = -1,
         left = 0,
@@ -65,7 +67,7 @@ private:
         std::swap(symbols_in_stock[first_symbol].iter, symbols_in_stock[second_symbol].iter);
 
         //changing parent's counter
-        first_node->parent.lock()->count += (second_node->count - first_node->count);// ошибка и еще раз
+        first_node->parent.lock()->count += (second_node->count - first_node->count);
         second_node->parent.lock()->count += (first_node->count - second_node->count);
 
         //swap Nodes in tree
@@ -137,6 +139,7 @@ private:
         increase_and_rebalance(symbol);
 
 
+        ++size;
     }
 
     inline void insert_existing(const unsigned int symbol) {
@@ -149,7 +152,7 @@ public:
 
     Huffman_Tree() : symbols_in_stock(513) {
         root = std::make_shared<Node>(++current_empty_value, Side::top);
-        lst.emplace(lst.begin(), root->symbol, root->count);// не будет работать с моим листом - нет конструирования в begin в пустом листе
+        lst.emplace(lst.begin(), root->symbol, root->count);
         last_leave = root;
 
     }
