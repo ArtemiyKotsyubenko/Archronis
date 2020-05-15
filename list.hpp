@@ -73,6 +73,8 @@ public:
 
     Iter insert(const Iter &iter, T &&);
 
+    Iter erase(const Iter &iter);
+
 //    template<typename ...Args>
 //    void emplace_back(Args &&...args);
 //
@@ -464,6 +466,20 @@ typename list<T, Allocator>::Iter list<T, Allocator>::insert(const list::Iter &i
     Iter iter_to_return;
     iter_to_return.ptr_ = ptr;
     ++size_;
+    return iter_to_return;
+}
+
+template<typename T, typename Allocator>
+typename list<T, Allocator>::Iter list<T, Allocator>::erase(const list::Iter &iter) {
+    Iter iter_to_return;
+    if (iter.ptr_ == end_|| iter.ptr_ == rend_){
+        iter_to_return.ptr_ = end_;
+    } else{
+        iter.ptr_->next_->prev_ = iter.ptr_->prev_;
+        iter.ptr_->prev_->next = iter.ptr_->next_;
+    }
+    Node_traits::destroy(node_alloc_, iter.ptr_);
+    Node_traits::deallocate(node_alloc_, iter.ptr_, 1);
     return iter_to_return;
 }
 

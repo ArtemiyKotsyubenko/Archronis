@@ -7,7 +7,7 @@
 #include "Streams.h"
 #include "Huffman_Tree.h"
 
-class Coder {
+class HuffmanCoder {
 private:
 
     Ifstream_wrap Fin;
@@ -32,17 +32,17 @@ protected:
     std::ofstream &fout;
 
 public:
-    Coder(const char *input_file, const char *output_file) :
+    HuffmanCoder(const char *input_file, const char *output_file) :
             Fin(input_file),
             Fout(output_file),
             fin(Fin.file),
             fout(Fout.file) {}
 
-    ~Coder() = default;
+    ~HuffmanCoder() = default;
 
 };
 
-class Encoder : protected Coder {
+class HuffmanEncoder : protected HuffmanCoder {
 private:
     class Bit_writer {
     private:
@@ -106,7 +106,7 @@ private:
 
 public:
 
-    Encoder(const char *input_file, const char *output_file) : Coder(input_file, output_file), bit_writer(fout) {
+    HuffmanEncoder(const char *input_file, const char *output_file) : HuffmanCoder(input_file, output_file), bit_writer(fout) {
         if (fin.peek() != EOF) {
             for (char ch = 0; fin.get(ch);) {
                 unsigned char c = ch;
@@ -122,10 +122,10 @@ public:
         }
     }
 
-    ~Encoder() = default;
+    ~HuffmanEncoder() = default;
 };
 
-class Decoder : protected Coder {
+class HuffmanDecoder : protected HuffmanCoder {
 private:
     Huffman_Tree_adapter adapter;
     bool delimiter_reached = false;
@@ -154,7 +154,7 @@ private:
     }
 
 public:
-    Decoder(const char *input_file, const char *output_file) : Coder(input_file, output_file), adapter(tree), cnt(8) {
+    HuffmanDecoder(const char *input_file, const char *output_file) : HuffmanCoder(input_file, output_file), adapter(tree), cnt(8) {
         /*
         * read byte
         * read its bits and move tree ptr.
@@ -199,7 +199,7 @@ public:
         }
     }
 
-    ~Decoder() = default;
+    ~HuffmanDecoder() = default;
 
 };
 
