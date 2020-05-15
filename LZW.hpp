@@ -56,7 +56,7 @@ protected:
         }
     }
 
-    u_char get_digit_capacity() const {
+    u_char get_digit_capacity() const {// - мб тут косяк
 
         unsigned cnt = 0;
         for (unsigned copy = size_; copy != 0; copy >>= 1, ++cnt);
@@ -89,9 +89,10 @@ bool Encoding_LZW_Tree::insert(const char symbol) {
     //вставка символа
     ptr_.lock()->next_[symbol] = std::make_shared<Node>(symbol, size_++, ptr_); // иначе - вставить символ на которыом оборвались и перейти к нему в корне
     //str.push_back(ptr_.lock()->value_);// НЕ СИМВОЛ А КОД!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    output_code = ptr_.lock()->value_;// Не должна ли она стоять ниже?
+    output_code = ptr_.lock()->value_;// Не должна ли она стоять ниже? - НЕТ
     //перевели указатель на еужную вершину
     ptr_ = root->next_[symbol];
+    //output_code = ptr_.lock()->value_;
 
     return true;
     // дописать символ на котором прервались в эту цепочку(в дереве) - готово
@@ -113,8 +114,12 @@ unsigned Encoding_LZW_Tree::return_code() {//return symbol code;
     return copy;
 }
 
-uint16_t Encoding_LZW_Tree::bits_in_next_code() {
-    return get_digit_capacity();
+uint16_t Encoding_LZW_Tree::bits_in_next_code() {// возвращает не то что надо
+    // должно вернуть - количество бит в output
+    unsigned cnt = 0;
+    for (unsigned copy = output_code; copy != 0; copy >>= 1, ++cnt);
+    return cnt < 8 ? 8 : cnt;
+    //return get_digit_capacity();
 }
 
 /**********************************************************************************************************************/

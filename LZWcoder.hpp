@@ -74,28 +74,21 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
 
     if (fin.peek() != EOF) {
         for (char ch = 0; fin.get(ch);) {
+            //u_char current_byte = ch;
             if (tree.insert(ch)) {// возможно ниже неправильная реализация
                 code_ = tree.return_code();// вот возможно фигня...
-                code_ << (16 - tree.bits_in_next_code());
-                /*//записать в bit_to write
-                 //когда он переполнится - записать его в файл
-                uint16_t bits_remained = tree.bits_in_next_code();
-                while (bits_remained){
-                    byte_to_write |=(code_ & 1);
-                    code_ <<= 1;
-                    byte_to_write <<= 1;
-                    if(++cnt_){
-                        fout << byte_to_write;
-                    }
-                }*/
+                uint16_t bits_in_next_code = tree.bits_in_next_code();
+                code_ <<= (16 - bits_in_next_code);
                 while (code_) {
+                    byte_to_write <<= 1;
                     byte_to_write |= ((code_ & 0b1000'0000'0000'0000) != 0);
                     // записать в младший бит байта на запись старший бит преобразованного кода
 
                     code_ <<= 1;
-                    byte_to_write <<= 1;
-                    if (++cnt_) {
+
+                    if (++cnt_ == 0) {
                         fout << byte_to_write;
+                        byte_to_write = 0;
                     }
                 }
                 /*
@@ -112,7 +105,8 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
         }
         tree.insert(EOF);
         code_ = tree.return_code();// вот возможно фигня...
-        code_ << (16 - tree.bits_in_next_code());
+        uint32_t bits_in_next_code = tree.bits_in_next_code();
+        code_ <<= (16 - bits_in_next_code);
         while (code_) {
             byte_to_write |= ((code_ & 0b1000'0000'0000'0000) != 0);
             // записать в младший бит байта на запись старший бит преобразованного кода
