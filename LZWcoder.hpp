@@ -79,7 +79,7 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
                 code_ = tree.return_code();// вот возможно фигня...
                 uint16_t bits_in_next_code = tree.bits_in_next_code();
                 code_ <<= (16 - bits_in_next_code);
-                while (code_) {
+                while (bits_in_next_code) {
                     byte_to_write <<= 1;
                     byte_to_write |= ((code_ & 0b1000'0000'0000'0000) != 0);
                     // записать в младший бит байта на запись старший бит преобразованного кода
@@ -87,9 +87,12 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
                     code_ <<= 1;
 
                     if (++cnt_ == 0) {
+                        std::cout << byte_to_write;
+                        std::cout.flush();
                         fout << byte_to_write;
                         byte_to_write = 0;
                     }
+                    --bits_in_next_code;
                 }
                 /*
                 for(uint16_t bits_remained = tree.bits_in_next_code(); bits_remained!= 0; --bits_remained){//пока в текущем коде остались биты для считывания
@@ -104,18 +107,23 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
             }
         }
         tree.insert(EOF);
-        code_ = tree.return_code();// вот возможно фигня...
-        uint32_t bits_in_next_code = tree.bits_in_next_code();
+        code_ = tree.return_code();
+        uint16_t bits_in_next_code = tree.bits_in_next_code();
         code_ <<= (16 - bits_in_next_code);
-        while (code_) {
+        while (bits_in_next_code) {
+            byte_to_write <<= 1;
             byte_to_write |= ((code_ & 0b1000'0000'0000'0000) != 0);
             // записать в младший бит байта на запись старший бит преобразованного кода
 
             code_ <<= 1;
-            byte_to_write <<= 1;
-            if (++cnt_) {
+
+            if (++cnt_ == 0) {
+                std::cout << byte_to_write;
+                std::cout.flush();
                 fout << byte_to_write;
+                byte_to_write = 0;
             }
+            --bits_in_next_code;
         }
     }
 }
