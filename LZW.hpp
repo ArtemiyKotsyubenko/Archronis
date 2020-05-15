@@ -59,7 +59,7 @@ protected:
     u_char get_digit_capacity() const {// - мб тут косяк
 
         unsigned cnt = 0;
-        for (unsigned copy = size_; copy != 0; copy >>= 1, ++cnt);
+        for (unsigned copy = size_ - 1; copy != 0; copy >>= 1, ++cnt);
         return cnt;
     }
 };
@@ -116,10 +116,10 @@ unsigned Encoding_LZW_Tree::return_code() {//return symbol code;
 
 uint16_t Encoding_LZW_Tree::bits_in_next_code() {// возвращает не то что надо
     // должно вернуть - количество бит в output
-    unsigned cnt = 0;
-    for (unsigned copy = output_code; copy != 0; copy >>= 1, ++cnt);
-    return cnt < 8 ? 8 : cnt;
-    //return get_digit_capacity();
+//    unsigned cnt = 0;
+//    for (unsigned copy = output_code; copy != 0; copy >>= 1, ++cnt);
+//    return cnt < 8 ? 8 : cnt;
+    return get_digit_capacity();
 }
 
 /**********************************************************************************************************************/

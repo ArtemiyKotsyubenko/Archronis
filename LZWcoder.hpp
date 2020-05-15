@@ -75,7 +75,7 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
     if (fin.peek() != EOF) {
         for (char ch = 0; fin.get(ch);) {
             //u_char current_byte = ch;
-            if (tree.insert(ch)) {// возможно ниже неправильная реализация
+            if (tree.insert(ch)) {
                 code_ = tree.return_code();// вот возможно фигня...
                 uint16_t bits_in_next_code = tree.bits_in_next_code();
                 code_ <<= (16 - bits_in_next_code);
@@ -87,8 +87,8 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
                     code_ <<= 1;
 
                     if (++cnt_ == 0) {
-                        std::cout << byte_to_write;
-                        std::cout.flush();
+                        //std::cout << byte_to_write;
+                        //std::cout.flush();
                         fout << byte_to_write;
                         byte_to_write = 0;
                     }
@@ -160,7 +160,8 @@ private:
             return out;
         }
 
-        uint32_t size() const {
+        uint32_t size()
+        const {
             return cnt_;
         }
     } buff;
@@ -183,6 +184,7 @@ DecoderLZW::DecoderLZW(const char *input_file, const char *output_file) :
                 tree.check_code(code_);
                 std::string output = tree.string_matches_code();
                 for (auto ch:output) {
+                    std::cout << output; std::cout.flush();
                     fout << output;
                 }
             }
@@ -194,7 +196,10 @@ DecoderLZW::DecoderLZW(const char *input_file, const char *output_file) :
 //            fout << output;
 //        }
     }
-
+// считать 8 бит.
+// Считать 9-й. Проверить, есть ли такой код в дереве.
+// Если есть - проверить 10.
+// если нет - вывести для 8
 }
 
 #endif //ARCHRONIS_LZWCODER_HPP
