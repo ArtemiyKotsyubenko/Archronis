@@ -59,13 +59,17 @@ protected:
     u_char get_digit_capacity() const {// - мб тут косяк
 
         unsigned cnt = 0;
-        for (unsigned copy = size_ - 1; copy != 0; copy >>= 1, ++cnt);
-        return cnt;
+        for (unsigned copy = size_; copy != 0; copy >>= 1, ++cnt);
+        //return cnt;
+        return cnt < 8 ? 8 : cnt;
     }
 };
 
 class Encoding_LZW_Tree : public LZW_tree {
 private:
+    unsigned prev_prev_size = size_;
+    unsigned prev_size = size_;
+
     uint16_t output_code;
 public:
     bool insert(const char symbol);
@@ -87,9 +91,14 @@ bool Encoding_LZW_Tree::insert(const char symbol) {
         return false;
     }
     //вставка символа
+    //output_code = ptr_.lock()->value_;// Не должна ли она стоять ниже? - НЕТ // после коммита про ошибку - переезжает на одну строку вверх // СЮДА
+    //prev_prev_size = size_;// на данном этапе это аналогично строке 96
+    prev_prev_size = prev_size;
+    prev_size = size_;
+
     ptr_.lock()->next_[symbol] = std::make_shared<Node>(symbol, ++size_, ptr_); // иначе - вставить символ на которыом оборвались и перейти к нему в корне
     //str.push_back(ptr_.lock()->value_);// НЕ СИМВОЛ А КОД!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    output_code = ptr_.lock()->value_;// Не должна ли она стоять ниже? - НЕТ
+    output_code = ptr_.lock()->value_;// Не должна ли она стоять ниже? - НЕТ // после коммита про ошибку - переезжает на одну строку вверх
     //перевели указатель на еужную вершину
     ptr_ = root->next_[symbol];
     //output_code = ptr_.lock()->value_;
@@ -100,7 +109,7 @@ bool Encoding_LZW_Tree::insert(const char symbol) {
 }
 
 bool Encoding_LZW_Tree::insert(int) {
-    //str.push_back(ptr_.lock()->value_);
+    prev_prev_size = prev_size;
     output_code = ptr_.lock()->value_;
     return true;
 }
@@ -116,10 +125,12 @@ unsigned Encoding_LZW_Tree::return_code() {//return symbol code;
 
 uint16_t Encoding_LZW_Tree::bits_in_next_code() {// возвращает не то что надо
     // должно вернуть - количество бит в output
-//    unsigned cnt = 0;
-//    for (unsigned copy = output_code; copy != 0; copy >>= 1, ++cnt);
-//    return cnt < 8 ? 8 : cnt;
-    return get_digit_capacity();
+    uint16_t cnt = 0;
+    //for (unsigned copy = output_code; copy != 0; copy >>= 1, ++cnt);
+    for (unsigned copy = prev_prev_size; copy != 0; copy >>= 1, ++cnt);
+    //prev_prev_size = size_;// вот тут он снова присваивает не то
+    return cnt < 8 ? 8 : cnt;
+    //return get_digit_capacity();
 }
 
 /**********************************************************************************************************************/
@@ -200,7 +211,7 @@ std::string Decoding_LZW_Tree::string_matches_code() {
 }
 
 uint16_t Decoding_LZW_Tree::request_bits() {
-    return get_digit_capacity() + 1;
+    return get_digit_capacity();
 }
 
 

@@ -87,8 +87,8 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
                     code_ <<= 1;
 
                     if (++cnt_ == 0) {
-                        //std::cout << byte_to_write;
-                        //std::cout.flush();
+                        std::cout << byte_to_write;
+                        std::cout.flush();
                         fout << byte_to_write;
                         byte_to_write = 0;
                     }
@@ -174,26 +174,26 @@ DecoderLZW::DecoderLZW(const char *input_file, const char *output_file) :
         CoderLZW(input_file, output_file) {
     if (fin.peek() != EOF) {
         //u_int16_t bits_in_next_code = tree.request_bits(); смещаю ниже
-        u_int16_t bits_in_next_code = tree.request_bits();
-
-        buff.push_back(fin.get());
-        tree.check_code(buff.get_bits(8));
-        fout << tree.string_matches_code();
-        std::cout << 1; std::cout.flush();
+//        u_int16_t bits_in_next_code = tree.request_bits();
+//
+//        buff.push_back(fin.get());
+//        tree.check_code(buff.get_bits(8));
+//        fout << tree.string_matches_code();
+//        std::cout << 1; std::cout.flush();
 
         for (char ch = 0; fin.get(ch);) {
-
+            uint16_t bits_in_next_code = tree.request_bits();
             u_char current_byte = ch;
             buff.push_back(current_byte);
             if (buff.size() >= bits_in_next_code) {
                 code_ = buff.get_bits(bits_in_next_code);// почему после выдачи 9 бит из 16 там осталось 8????
                 tree.check_code(code_);//переставил эти две строки местами
-                bits_in_next_code = tree.request_bits();//переставил эти две строки местами
+                //bits_in_next_code = tree.request_bits();//переставил эти две строки местами
 
                 std::string output = tree.string_matches_code();
                 for (auto ch:output) {
-                    std::cout << output; std::cout.flush();
-                    fout << output;
+                    std::cout << ch; std::cout.flush();
+                    fout << ch;
                 }
             }
         }
