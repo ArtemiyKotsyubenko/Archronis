@@ -72,9 +72,9 @@ private:
 
     uint16_t output_code;
 public:
-    bool insert(const char symbol);
+    bool insert(const u_char symbol);
 
-    bool insert(int = EOF);
+    void flush();
 
     uint16_t bits_in_next_code();
 
@@ -84,8 +84,9 @@ public:
 };
 
 /**********************************************************************************************************************/
-
-bool Encoding_LZW_Tree::insert(const char symbol) {
+//проблема в том, что в алгоритме сначала идёт вывод, потом добавление. тут - наоборот:(
+//решение - 100 - 107 строки вывести в отдельную функцию и вызывать её после вывода???
+bool Encoding_LZW_Tree::insert(const u_char symbol) {
     if (ptr_.lock()->next_[symbol] != nullptr) {// если можем пойти дальше по дереву - идём
         ptr_ = ptr_.lock()->next_[symbol];
         return false;
@@ -96,8 +97,11 @@ bool Encoding_LZW_Tree::insert(const char symbol) {
     prev_prev_size = prev_size;
     prev_size = size_;
 
-    ptr_.lock()->next_[symbol] = std::make_shared<Node>(symbol, ++size_, ptr_); // иначе - вставить символ на которыом оборвались и перейти к нему в корне
-    //str.push_back(ptr_.lock()->value_);// НЕ СИМВОЛ А КОД!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //std::cout << static_cast<int>(symbol) << std::endl;
+
+    ptr_.lock()->next_[symbol] = std::make_shared<Node>(symbol, ++size_, ptr_);
+    // иначе - вставить символ на которыом оборвались и перейти к нему в корне
+
     output_code = ptr_.lock()->value_;// Не должна ли она стоять ниже? - НЕТ // после коммита про ошибку - переезжает на одну строку вверх
     //перевели указатель на еужную вершину
     ptr_ = root->next_[symbol];
@@ -108,10 +112,9 @@ bool Encoding_LZW_Tree::insert(const char symbol) {
     // перевести указатель на вершину, в которой прервались(в корне) - готово
 }
 
-bool Encoding_LZW_Tree::insert(int) {
+void Encoding_LZW_Tree::flush() {
     prev_prev_size = prev_size;
     output_code = ptr_.lock()->value_;
-    return true;
 }
 
 //call when insert returned true
@@ -138,25 +141,32 @@ uint16_t Encoding_LZW_Tree::bits_in_next_code() {// возвращает не т
 class Decoding_LZW_Tree : public LZW_tree {
 public:
     void check_code(u_int16_t code);
+
     std::string string_matches_code();
+
     uint16_t request_bits();
 };
 
 void Decoding_LZW_Tree::check_code(u_int16_t code) {
 
+
     std::weak_ptr<Node> pv = node_ptr_[code];
 
+    std::cout << "code : " << code << " symbol : " << static_cast<int>(pv.lock()->symbol_) << std::endl;
 
-    if (ptr_.lock()->next_[pv.lock()->symbol_] == nullptr) {// если не можем по нему перейти, то продолжим цепочку этим символом
+    if (ptr_.lock()->next_[pv.lock()->symbol_] == nullptr) {
+        // если не можем по нему перейти, то продолжим цепочку этим символом
         std::weak_ptr<Node> first_chain_symbol = node_ptr_[code];
 
         while (first_chain_symbol.lock()->parent_.lock() != root) {// нашли первый симфол цепочки.
             first_chain_symbol = first_chain_symbol.lock()->parent_;
         }
-        ptr_.lock()->next_[first_chain_symbol.lock()->symbol_] =
-                std::make_shared<Node>(first_chain_symbol.lock()->symbol_, size_ + 1, ptr_);// возможно ошибка
-                node_ptr_[size_ + 1] = ptr_.lock()->next_[first_chain_symbol.lock()->symbol_];
-                ++size_;
+        ptr_.lock()->next_[first_chain_symbol.lock()->symbol_] = std::make_shared<Node>(first_chain_symbol.lock()->symbol_, size_ + 1, ptr_);
+
+        // возможно ошибка ВЫШЕ НА СТРОКУ
+
+        node_ptr_[size_ + 1] = ptr_.lock()->next_[first_chain_symbol.lock()->symbol_];
+        ++size_;
     }
 
     ptr_ = pv.lock();// сместили указатель на правильную позицию. НУЖЕН ЛИ lock? В конечном счёте там node_ptr_[code]

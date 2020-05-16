@@ -74,9 +74,10 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
 
     if (fin.peek() != EOF) {
         for (char ch = 0; fin.get(ch);) {
-            //u_char current_byte = ch;
-            if (tree.insert(ch)) {
+            u_char current_byte = ch;
+            if (tree.insert(current_byte)) {
                 code_ = tree.return_code();// вот возможно фигня...
+                std::cout << code_ << ' ';
                 uint16_t bits_in_next_code = tree.bits_in_next_code();
                 code_ <<= (16 - bits_in_next_code);
                 while (bits_in_next_code) {
@@ -87,8 +88,8 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
                     code_ <<= 1;
 
                     if (++cnt_ == 0) {
-                        std::cout << byte_to_write;
-                        std::cout.flush();
+                        //std::cout << byte_to_write;
+                        //std::cout.flush();
                         fout << byte_to_write;
                         byte_to_write = 0;
                     }
@@ -106,8 +107,10 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
                  */
             }
         }
-        tree.insert(EOF);
+        //tree.insert(EOF);
+        tree.flush();
         code_ = tree.return_code();
+        std::cout << code_ << ' ';
         uint16_t bits_in_next_code = tree.bits_in_next_code();
 
         uint16_t bits_remained_in_general = bits_in_next_code + cnt_;
@@ -123,8 +126,8 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
             code_ <<= 1;
 
             if (++cnt_ == 0) {
-                std::cout << byte_to_write;
-                std::cout.flush();
+//                std::cout << byte_to_write;
+//                std::cout.flush();
                 fout << byte_to_write;
                 byte_to_write = 0;
             }
@@ -133,22 +136,6 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
 
         byte_to_write <<= (8 - last_bit_will_remain);
         fout << byte_to_write;
-
-//        while (bits_in_next_code) {
-//            byte_to_write <<= 1;
-//            byte_to_write |= ((code_ & 0b1000'0000'0000'0000) != 0);
-//            // записать в младший бит байта на запись старший бит преобразованного кода
-//
-//            code_ <<= 1;
-//
-//            if (++cnt_ == 0) {
-//                std::cout << byte_to_write;
-//                std::cout.flush();
-//                fout << byte_to_write;
-//                byte_to_write = 0;
-//            }
-//            --bits_in_next_code;
-//        }
     }
 }
 
@@ -197,14 +184,6 @@ public:
 DecoderLZW::DecoderLZW(const char *input_file, const char *output_file) :
         CoderLZW(input_file, output_file) {
     if (fin.peek() != EOF) {
-        //u_int16_t bits_in_next_code = tree.request_bits(); смещаю ниже
-//        u_int16_t bits_in_next_code = tree.request_bits();
-//
-//        buff.push_back(fin.get());
-//        tree.check_code(buff.get_bits(8));
-//        fout << tree.string_matches_code();
-//        std::cout << 1; std::cout.flush();
-
         for (char ch = 0; fin.get(ch);) {
             uint16_t bits_in_next_code = tree.request_bits();
             u_char current_byte = ch;
@@ -216,17 +195,12 @@ DecoderLZW::DecoderLZW(const char *input_file, const char *output_file) :
 
                 std::string output = tree.string_matches_code();
                 for (auto ch:output) {
-                    std::cout << ch; std::cout.flush();
+                    //std::cout << ch; std::cout.flush();
                     fout << ch;
                 }
             }
         }
 
-//        tree.check_code(EOF);
-//        std::string output = tree.string_matches_code();
-//        for (auto ch:output) {
-//            fout << output;
-//        }
     }
 // считать 8 бит.
 // Считать 9-й. Проверить, есть ли такой код в дереве.
