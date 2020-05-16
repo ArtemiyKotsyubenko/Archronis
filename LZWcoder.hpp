@@ -28,11 +28,11 @@ protected:
         }
 
         const int operator+=(const u_char num) {
-            return (i += 8) %= mod;
+            return (i += num) %= mod;
         }
 
         const int operator-=(const u_char num) {
-            return (i -= 8) %= mod;
+            return (i -= num) %= mod;
         }
 
         operator u_char() const { return i; }
@@ -173,15 +173,23 @@ public:
 DecoderLZW::DecoderLZW(const char *input_file, const char *output_file) :
         CoderLZW(input_file, output_file) {
     if (fin.peek() != EOF) {
+        //u_int16_t bits_in_next_code = tree.request_bits(); смещаю ниже
         u_int16_t bits_in_next_code = tree.request_bits();
 
+        buff.push_back(fin.get());
+        tree.check_code(buff.get_bits(8));
+        fout << tree.string_matches_code();
+        std::cout << 1; std::cout.flush();
+
         for (char ch = 0; fin.get(ch);) {
+
             u_char current_byte = ch;
             buff.push_back(current_byte);
             if (buff.size() >= bits_in_next_code) {
-                code_ = buff.get_bits(bits_in_next_code);
-                bits_in_next_code = tree.request_bits();
-                tree.check_code(code_);
+                code_ = buff.get_bits(bits_in_next_code);// почему после выдачи 9 бит из 16 там осталось 8????
+                tree.check_code(code_);//переставил эти две строки местами
+                bits_in_next_code = tree.request_bits();//переставил эти две строки местами
+
                 std::string output = tree.string_matches_code();
                 for (auto ch:output) {
                     std::cout << output; std::cout.flush();

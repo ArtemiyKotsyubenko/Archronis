@@ -14,7 +14,7 @@
 //template<typename Allocator = std::allocator<char>>
 class LZW_tree {
 protected:
-    unsigned size_ = 256;
+    unsigned size_ = 255;
 
     struct Node {
 
@@ -49,7 +49,7 @@ protected:
     }
 
     void resize() {
-        size_ = 256;
+        size_ = 255;
         // удалить всех детей корня
         for (int i = 0; i < 256; ++i) {
             root->next_[i].reset();
@@ -87,7 +87,7 @@ bool Encoding_LZW_Tree::insert(const char symbol) {
         return false;
     }
     //вставка символа
-    ptr_.lock()->next_[symbol] = std::make_shared<Node>(symbol, size_++, ptr_); // иначе - вставить символ на которыом оборвались и перейти к нему в корне
+    ptr_.lock()->next_[symbol] = std::make_shared<Node>(symbol, ++size_, ptr_); // иначе - вставить символ на которыом оборвались и перейти к нему в корне
     //str.push_back(ptr_.lock()->value_);// НЕ СИМВОЛ А КОД!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     output_code = ptr_.lock()->value_;// Не должна ли она стоять ниже? - НЕТ
     //перевели указатель на еужную вершину
@@ -143,8 +143,8 @@ void Decoding_LZW_Tree::check_code(u_int16_t code) {
             first_chain_symbol = first_chain_symbol.lock()->parent_;
         }
         ptr_.lock()->next_[first_chain_symbol.lock()->symbol_] =
-                std::make_shared<Node>(first_chain_symbol.lock()->symbol_, size_, ptr_);// возможно ошибка
-                node_ptr_[size_] = ptr_.lock()->next_[first_chain_symbol.lock()->symbol_];
+                std::make_shared<Node>(first_chain_symbol.lock()->symbol_, size_ + 1, ptr_);// возможно ошибка
+                node_ptr_[size_ + 1] = ptr_.lock()->next_[first_chain_symbol.lock()->symbol_];
                 ++size_;
     }
 
@@ -200,7 +200,7 @@ std::string Decoding_LZW_Tree::string_matches_code() {
 }
 
 uint16_t Decoding_LZW_Tree::request_bits() {
-    return get_digit_capacity();
+    return get_digit_capacity() + 1;
 }
 
 
