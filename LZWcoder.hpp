@@ -77,8 +77,8 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
             u_char current_byte = ch;
             if (tree.insert(current_byte)) {
                 code_ = tree.return_code();// вот возможно фигня...
-                std::cout << code_ << ' ';
                 uint16_t bits_in_next_code = tree.bits_in_next_code();
+                std::cout << "code : " << code_ << " bits : " << bits_in_next_code<< '\n';
                 code_ <<= (16 - bits_in_next_code);
                 while (bits_in_next_code) {
                     byte_to_write <<= 1;
@@ -110,9 +110,8 @@ EncoderLZW::EncoderLZW(const char *input_file, const char *output_file) :
         //tree.insert(EOF);
         tree.flush();
         code_ = tree.return_code();
-        std::cout << code_ << ' ';
-        uint16_t bits_in_next_code = tree.bits_in_next_code();
 
+        uint16_t bits_in_next_code = tree.bits_in_next_code();
         uint16_t bits_remained_in_general = bits_in_next_code + cnt_;
         uint16_t last_bit_will_remain = bits_remained_in_general % 8;
 
@@ -190,6 +189,7 @@ DecoderLZW::DecoderLZW(const char *input_file, const char *output_file) :
             buff.push_back(current_byte);
             if (buff.size() >= bits_in_next_code) {
                 code_ = buff.get_bits(bits_in_next_code);// почему после выдачи 9 бит из 16 там осталось 8????
+                std::cout << "code : " << code_ << " bits : " << bits_in_next_code<< '\n';
                 tree.check_code(code_);//переставил эти две строки местами
                 //bits_in_next_code = tree.request_bits();//переставил эти две строки местами
 

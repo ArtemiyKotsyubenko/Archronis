@@ -152,16 +152,23 @@ void Decoding_LZW_Tree::check_code(u_int16_t code) {
 
     std::weak_ptr<Node> pv = node_ptr_[code];
 
-    std::cout << "code : " << code << " symbol : " << static_cast<int>(pv.lock()->symbol_) << std::endl;
+    //std::cout << "code : " << code << " symbol : " << static_cast<int>(pv.lock()->symbol_) << std::endl;
 
-    if (ptr_.lock()->next_[pv.lock()->symbol_] == nullptr) {
+/*    if (pv.expired()) {
+        ptr_.lock()->next_[ptr_.lock()->symbol_] = std::make_shared<Node>(ptr_.lock()->symbol_, size_ + 1, ptr_);
+        pv = node_ptr_[code] = ptr_.lock()->next_[ptr_.lock()->symbol_];
+        ++size_;
+
+
+    } else*/ if (ptr_.lock()->next_[pv.lock()->symbol_] == nullptr) {
         // если не можем по нему перейти, то продолжим цепочку этим символом
         std::weak_ptr<Node> first_chain_symbol = node_ptr_[code];
 
         while (first_chain_symbol.lock()->parent_.lock() != root) {// нашли первый симфол цепочки.
             first_chain_symbol = first_chain_symbol.lock()->parent_;
         }
-        ptr_.lock()->next_[first_chain_symbol.lock()->symbol_] = std::make_shared<Node>(first_chain_symbol.lock()->symbol_, size_ + 1, ptr_);
+        ptr_.lock()->next_[first_chain_symbol.lock()->symbol_] =
+                std::make_shared<Node>(first_chain_symbol.lock()->symbol_, size_ + 1, ptr_);
 
         // возможно ошибка ВЫШЕ НА СТРОКУ
 
