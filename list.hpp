@@ -66,9 +66,9 @@ public:
 
     void clear();
 
-    T front();
+    T front() const;
 
-    T back();
+    T back() const;
 
     template<typename ...Args>
     Iter emplace(const Iter &iter, Args &&...args);
@@ -457,7 +457,7 @@ list<T, Allocator>::~list() {
 template<typename T, typename Allocator>
 typename list<T, Allocator>::Iter list<T, Allocator>::insert(const list::Iter &iter, T &&data) {
     Node *ptr = Node_traits::allocate(node_alloc_, 1);
-    Node_traits::construct(node_alloc_, ptr, data);
+    Node_traits::construct(node_alloc_, ptr, std::move(data));
     if (size_ == 0) {
         tail_ = head_ = ptr;
     }
@@ -490,12 +490,12 @@ typename list<T, Allocator>::Iter list<T, Allocator>::erase(const list::Iter &it
 }
 
 template<typename T, typename Allocator>
-T list<T, Allocator>::front() {
+T list<T, Allocator>::front() const {
     return head_->data_;
 }
 
 template<typename T, typename Allocator>
-T list<T, Allocator>::back() {
+T list<T, Allocator>::back() const {
     return tail_->data_;
 }
 
