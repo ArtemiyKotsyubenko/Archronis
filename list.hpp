@@ -79,12 +79,6 @@ public:
 
     Iter erase(const Iter &iter);
 
-//    template<typename ...Args>
-//    void emplace_back(Args &&...args);
-//
-//    template<typename ...Args>
-//    void emplace_front(Args &&...args);
-
 
     unsigned size() const;
 
@@ -92,11 +86,6 @@ public:
     Iter begin() const;
 
     Iter end()const;
-
-    //const Iter cbegin() const;
-
-    //const Iter cend() const;
-
 
 private:
     unsigned size_;
@@ -168,7 +157,7 @@ public:
 private:
 
 
-    Node *ptr_ = nullptr;
+    mutable Node *ptr_ = nullptr;
 };
 
 
@@ -498,25 +487,5 @@ template<typename T, typename Allocator>
 T list<T, Allocator>::back() const {
     return tail_->data_;
 }
-
-//template<typename T, typename Allocator>
-//void list<T, Allocator>::clear() {
-//    if(tail_){
-//        tail_->next_ = nullptr;
-//    }
-//    for (Node *pv = head_; pv;) {
-//        Node *next = pv->next_;
-//        Node_traits::destroy(node_alloc_, pv);
-//        Node_traits::deallocate(node_alloc_, pv, 1);
-//        pv = next;
-//    }
-//    head_ = tail_ = nullptr;
-//    rend_->next_ = end_;
-//    end_->prev_ = rend_;
-//    size_ = 0;
-//
-//
-//
-//}
 
 #endif //ARCHRONIS_LIST_HPP

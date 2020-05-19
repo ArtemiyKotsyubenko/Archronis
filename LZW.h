@@ -11,11 +11,11 @@
 #include <memory>
 #include "String.hpp"
 #include "Dict.hpp"
+#include <cstring>
 
 class Coder {
 private:
     Ifstream_wrap Fin;
-    //Ofstream_wrap Fout;
 protected:
     struct counter {
     private:
@@ -44,16 +44,13 @@ protected:
     };
 
     std::ifstream &fin;
-    //std::ofstream &fout;
 
     uint16_t code_ = 0;
     u_char byte_to_write = 0;
 
     Coder(const char *input_file) :
             Fin(input_file),
-            //Fout(output_file),
             fin(Fin.file)
-            //fout(Fout.file)
             {}
 
     ~Coder() = default;
@@ -64,7 +61,6 @@ private:
     ::dict<string, uint16_t> dict;
 
     string previous;
-    //string current;
     u_char current;
     u_char previous_byte;
     counter cnt_ = counter(8);
@@ -98,10 +94,6 @@ Encoder::Encoder(const char *filename_) : Coder(filename_), dict(4096) {
         arch_name[i] = filename_[i];
     }
     arch_name[len - ext.size() - 1] = 0;
-//    arch_name[len - ext.size()] = '.';
-//    arch_name[len - ext.size()] = 't';
-//    arch_name[len - ext.size()] = 'x';
-//    arch_name[len - ext.size()] = 't';
 
     std::ofstream fout(arch_name);
 
@@ -183,7 +175,7 @@ private:
     string current_string;
     string previous_string;
 
-    struct buffer_of_32bit {// так как максимальный вес кода - 12 бит, переполнения не возникнет никогда
+    struct buffer_of_32bit {
     private:
         counter cnt_ = counter(32);
         u_int32_t buff = 0;

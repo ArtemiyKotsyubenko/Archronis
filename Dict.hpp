@@ -32,22 +32,6 @@ public:
     }
 };
 
-template<>
-struct hasher<std::string> {
-private:
-    const unsigned seed = 1283;
-public:
-
-    unsigned operator()(const std::string &str) const {
-        unsigned hash = 0;
-
-        for (auto ch : str) {
-            //hash = (hash + ch)* seed;
-            (hash += ch) *= seed; // <=>  hash = (hash + ch)* seed;
-        }
-        return hash;
-    }
-};
 
 template<>
 struct hasher<uint16_t> {
@@ -111,11 +95,6 @@ public:
         return size_;
     }
 
-//    void clear(){
-//        for(auto it: dct){
-//            it.clear();
-//        }
-//    }
 };
 
 
