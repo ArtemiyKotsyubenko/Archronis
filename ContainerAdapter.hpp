@@ -65,7 +65,7 @@ unsigned stack<T, Container>::size() const {
 
 template<typename T, class Container>
 bool stack<T, Container>::empty() const {
-    return container.size();
+    return !container.size();
 }
 
 
