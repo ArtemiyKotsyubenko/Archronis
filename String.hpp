@@ -5,6 +5,8 @@
 #ifndef ARCHRONIS_STRING_HPP
 #define ARCHRONIS_STRING_HPP
 
+#include <bits/allocator.h>
+#include <memory>
 
 template<typename Allocator = std::allocator<char>>
 class String {
