@@ -1,14 +1,10 @@
 #ifndef ARCHRONIS_HUFFMANCODER_HPP
 #define ARCHRONIS_HUFFMANCODER_HPP
 
-#ifndef HUFFMAN_V2_0_CODER_H
-#define HUFFMAN_V2_0_CODER_H
-
-#include <vector>
 #include <stack>
 #include <queue>
 #include "Streams.h"
-#include "Huffman_Tree.h"
+#include "HuffmanTree.hpp"
 #include "ContainerAdapter.hpp"
 #include "vector.hpp"
 
@@ -73,8 +69,8 @@ private:
     public:
         Bit_writer(std::ofstream &fout_) : fout(fout_), cnt(9) {}
 
-        //awaits std::vector<unsigned char> with elements 0 , 1
-        void push_back(const std::vector<unsigned char> &code) {
+        //awaits vector<unsigned char> with elements 0 , 1
+        void push_back(const vector<unsigned char> &code) {
             for (auto &it : code) {
                 bit_buffer.push(it);
             }
@@ -92,8 +88,8 @@ private:
         ~Bit_writer() = default;
     } bit_writer;
 
-    std::vector<unsigned char> get_base_symbol_code(unsigned char symbol) {
-        std::vector<unsigned char> result;
+    vector<unsigned char> get_base_symbol_code(unsigned char symbol) {
+        vector<unsigned char> result;
         std::stack<unsigned char> st;
 
         for (int i = 0; i < 8; ++i) {
@@ -204,4 +200,3 @@ public:
 
 #endif //HUFFMAN_V2_0_CODER_H
 
-#endif //ARCHRONIS_HUFFMANCODER_HPP
