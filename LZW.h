@@ -11,6 +11,7 @@
 #include <memory>
 #include "String.hpp"
 #include "Dict.hpp"
+#include <cstring>
 
 class Coder {
 private:
