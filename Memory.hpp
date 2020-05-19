@@ -29,7 +29,9 @@ public:
     template<typename U, typename...Args>
     friend shared_ptr<U> make_shared(Args &&...args);
 
-    explicit shared_ptr(T *ptr);
+    shared_ptr() = default;
+
+    shared_ptr(T *ptr);
 
     shared_ptr(const shared_ptr &other);
 
@@ -53,21 +55,25 @@ public:
     int use_count() const;
 
 private:
-    T *ptr_;
+    T *ptr_ = nullptr;
     control_block *control_block_;
 
-    shared_ptr() = default;
+
 };
 
 
 template<typename T, class Deleter>
 class weak_ptr {
 public:
+    weak_ptr() = default;
+
     weak_ptr(const weak_ptr &);
 
     explicit weak_ptr(const shared_ptr<T> &other);
 
     weak_ptr(weak_ptr &&other) noexcept;
+
+    weak_ptr<T>& operator=(const shared_ptr<T>& other);
 
     weak_ptr &operator=(const weak_ptr &other) = default;
 
@@ -80,7 +86,7 @@ public:
 
     bool operator!=(const weak_ptr &other) const;
 
-    shared_ptr<T> lock();
+    shared_ptr<T> lock() const ;
 
     bool expired() const;
 
@@ -113,7 +119,7 @@ bool weak_ptr<T, Deleter>::operator!=(const weak_ptr &other) const {
 }
 
 template<typename T, class Deleter>
-shared_ptr<T> weak_ptr<T, Deleter>::lock() {
+shared_ptr<T> weak_ptr<T, Deleter>::lock() const {
     shared_ptr<T> new_shared_ptr;
     new_shared_ptr.ptr_ = ptr_;
     new_shared_ptr.control_block_ = control_block_;
@@ -140,6 +146,13 @@ weak_ptr<T> &weak_ptr<T, Deleter>::operator=(weak_ptr &&other) noexcept {
     return *this;
 }
 
+template<typename T, class Deleter>
+weak_ptr<T> &weak_ptr<T, Deleter>::operator=(const shared_ptr<T> &other) {
+    ptr_ = other.ptr_;
+    control_block_ = other.control_block_;
+    return ;
+}
+
 
 //***************WEAK_PTR***********************
 
@@ -153,7 +166,7 @@ shared_ptr<T> make_shared(Args &&...args) {
 //    smart_ptr.ptr = new(allocated_memory) T(std::forward<Args>(args)...);
 //    smart_ptr.control_block_ = new(allocated_memory + sizeof(T)) control_block();
 
-    smart_ptr.ptr = new T(std::forward<Args>(args)...);
+    smart_ptr.ptr_ = new T(std::forward<Args>(args)...);
     smart_ptr.control_block_ = new control_block();
     return smart_ptr;
 }
