@@ -18,6 +18,7 @@ class weak_ptr;
 
 struct control_block {
     unsigned ptr_cnt = 0;
+    control_block() = default;
 };
 
 template<typename T, class Deleter>
@@ -56,7 +57,7 @@ public:
 
 private:
     T *ptr_ = nullptr;
-    control_block *control_block_;
+    control_block *control_block_ = nullptr;
 
 
 };
@@ -91,8 +92,8 @@ public:
     bool expired() const;
 
 private:
-    T *ptr_;
-    control_block *control_block_;
+    T *ptr_ = nullptr;
+    control_block *control_block_ = nullptr;
 };
 
 //***************WEAK_PTR***********************
@@ -128,7 +129,10 @@ shared_ptr<T> weak_ptr<T, Deleter>::lock() const {
 
 template<typename T, class Deleter>
 bool weak_ptr<T, Deleter>::expired() const {
-    return control_block_->ptr_cnt == 0;
+    if(control_block_) {
+        return control_block_->ptr_cnt == 0;
+    }
+    return false;
 }
 
 template<typename T, class Deleter>
@@ -150,7 +154,7 @@ template<typename T, class Deleter>
 weak_ptr<T> &weak_ptr<T, Deleter>::operator=(const shared_ptr<T> &other) {
     ptr_ = other.ptr_;
     control_block_ = other.control_block_;
-    return ;
+    return *this;
 }
 
 
@@ -167,7 +171,7 @@ shared_ptr<T> make_shared(Args &&...args) {
 //    smart_ptr.control_block_ = new(allocated_memory + sizeof(T)) control_block();
 
     smart_ptr.ptr_ = new T(std::forward<Args>(args)...);
-    smart_ptr.control_block_ = new control_block();
+    smart_ptr.control_block_ = new control_block;
     return smart_ptr;
 }
 
@@ -198,10 +202,13 @@ shared_ptr<T> &shared_ptr<T, Deleter>::operator=(const shared_ptr &other) {
 
 template<typename T, class Deleter>
 shared_ptr<T, Deleter>::~shared_ptr() {
-    --control_block_->ptr_cnt;
-    if (control_block_->ptr_cnt == 0) {
-        delete control_block_;
-        delete ptr_;
+    if(control_block_) {
+        --(control_block_->ptr_cnt);
+
+        if (control_block_->ptr_cnt == 0) {
+            delete control_block_;
+            delete ptr_;
+        }
     }
 }
 
@@ -234,14 +241,17 @@ template<typename T, class Deleter>
 shared_ptr<T, Deleter>::shared_ptr(shared_ptr &&other) noexcept {
     ptr_ = other.ptr_;
     control_block_ = other.control_block_;
-    other.control_block_ = other.ptr_ = nullptr;
+    other.control_block_ = nullptr;
+    other.ptr_ = nullptr;
 }
 
 template<typename T, class Deleter>
 shared_ptr<T> &shared_ptr<T, Deleter>::operator=(shared_ptr &&other) noexcept {
     ptr_ = other.ptr_;
     control_block_ = other.control_block_;
-    other.control_block_ = other.ptr_ = nullptr;
+    other.control_block_ = nullptr;
+    other.ptr_ = nullptr;
+    return *this;
 }
 
 template<typename T, class Deleter>
