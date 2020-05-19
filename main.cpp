@@ -1,5 +1,5 @@
 #include <cstring>
-#include "LZW.hpp"
+#include "LZWcoder.hpp"
 
 int main(int argc, char **argv) {
 
