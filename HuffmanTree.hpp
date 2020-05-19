@@ -1,9 +1,6 @@
 #ifndef ARCHRONIS_HUFFMANTREE_HPP
 #define ARCHRONIS_HUFFMANTREE_HPP
 
-#ifndef HUFFMAN_V2_0_HUFFMAN_TREE_H
-#define HUFFMAN_V2_0_HUFFMAN_TREE_H
-
 #include "Memory.hpp"
 #include <memory>
 #include <stack>
@@ -253,6 +250,3 @@ public:
 };
 
 #endif //HUFFMAN_V2_0_HUFFMAN_TREE_H
-
-
-#endif //ARCHRONIS_HUFFMANTREE_HPP

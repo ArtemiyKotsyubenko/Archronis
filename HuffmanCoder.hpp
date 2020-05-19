@@ -1,9 +1,6 @@
 #ifndef ARCHRONIS_HUFFMANCODER_HPP
 #define ARCHRONIS_HUFFMANCODER_HPP
 
-#ifndef HUFFMAN_V2_0_CODER_H
-#define HUFFMAN_V2_0_CODER_H
-
 #include <vector>
 #include <stack>
 #include <queue>
@@ -204,4 +201,3 @@ public:
 
 #endif //HUFFMAN_V2_0_CODER_H
 
-#endif //ARCHRONIS_HUFFMANCODER_HPP
