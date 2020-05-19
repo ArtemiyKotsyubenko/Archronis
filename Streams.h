@@ -8,7 +8,7 @@ class Ofstream_wrap {
 public:
     std::ofstream file;
 
-    explicit Ofstream_wrap(const char *path) : file(path) {
+    explicit Ofstream_wrap(const char* path) : file(path) {
         if (file.fail()) {
             std::cerr << "Error opening file \n";
             exit(1);
@@ -25,7 +25,7 @@ class Ifstream_wrap {
 public:
     std::ifstream file;
 
-    explicit Ifstream_wrap(const char *path) : file(path) {
+    explicit Ifstream_wrap(const char* path) : file(path) {
         if (file.fail()) {
             std::cerr << "Error opening file \n";
             exit(1);

@@ -9,12 +9,13 @@
 #include "Streams.h"
 #include <vector>
 #include <memory>
-#include "Adapter.h"
+#include "String.hpp"
+#include "Dict.hpp"
+#include <cstring>
 
 class Coder {
 private:
     Ifstream_wrap Fin;
-    Ofstream_wrap Fout;
 protected:
     struct counter {
     private:
@@ -42,26 +43,23 @@ protected:
         counter(const unsigned char mod_) : mod(mod_) {}
     };
 
-    std::ifstream &fin;
-    std::ofstream &fout;
+    std::ifstream& fin;
 
     uint16_t code_ = 0;
     u_char byte_to_write = 0;
 
-    Coder(const char *input_file, const char *output_file) :
+    Coder(const char* input_file) :
             Fin(input_file),
-            Fout(output_file),
-            fin(Fin.file),
-            fout(Fout.file) {}
+            fin(Fin.file) {}
 
     ~Coder() = default;
 };
 
 class Encoder : protected Coder {
 private:
-    std::unordered_map<std::string, uint16_t> dict;
-    std::string previous;
-    //std::string current;
+    ::dict<string, uint16_t> dict;
+
+    string previous;
     u_char current;
     u_char previous_byte;
     counter cnt_ = counter(8);
@@ -73,24 +71,48 @@ private:
     }
 
 public:
-    Encoder(const char *input_file, const char *output_file);
+    Encoder(const char* input_file);
 
 
 };
 
-Encoder::Encoder(const char *input_file, const char *output_file) : Coder(input_file, output_file) {
+Encoder::Encoder(const char* filename_) : Coder(filename_), dict(4096) {
+
+    string ext;
+    int len = strlen(filename_);
+
+    int i = len;
+    for (; filename_[i - 1] != '.'; --i);
+
+    for (int j = i; j < len; ++j) {
+        ext.push_back(filename_[j]);
+    }
+
+    char arch_name[len - ext.size()];
+    for (int i = 0; i < len - ext.size() - 1; ++i) {
+        arch_name[i] = filename_[i];
+    }
+    arch_name[len - ext.size() - 1] = 0;
+
+    std::ofstream fout(arch_name);
+
+    for (int j = 0; j < i; ++j) {
+        fout << ext[j];
+    }
+
+    fout << '\n';
 
     for (int i = 0; i < 256; ++i) {
-        dict.emplace(std::string(1, i), i);
+        dict.insert({string(1, i), i});
     }
 
 
-    if (fin.peek() != EOF) {// коды верны. Верна ли битовая запись?
+    if (fin.peek() != EOF) {
         previous.push_back(fin.get());
 
         for (char ch; fin.get(ch);) {
             current = ch;
-            std::string concat(previous);
+            string concat(previous);
             concat.push_back(current);
 
             auto it = dict.find(concat);
@@ -146,14 +168,13 @@ Encoder::Encoder(const char *input_file, const char *output_file) : Coder(input_
 
 class Decoder : protected Coder {
 private:
-    std::unordered_map<uint16_t, std::string> dict;
-    std::unordered_map<std::string, uint16_t> dict_;
+    ::dict<uint16_t, string> dict;
     uint16_t current_code;
     uint16_t previous_code;
-    std::string current_string;
-    std::string previous_string;
+    string current_string;
+    string previous_string;
 
-    struct buffer_of_32bit {// так как максимальный вес кода - 12 бит, переполнения не возникнет никогда
+    struct buffer_of_32bit {
     private:
         counter cnt_ = counter(32);
         u_int32_t buff = 0;
@@ -191,21 +212,44 @@ private:
     }
 
 public:
-    Decoder(const char *input_file, const char *output_file);
+    Decoder(const char* input_file);
 };
 
-Decoder::Decoder(const char *input_file, const char *output_file) : Coder(input_file, output_file) {
+Decoder::Decoder(const char* input_file) : Coder(input_file), dict(4096) {
 
 
     for (int i = 0; i < 256; ++i) {
-        dict.emplace(i, std::string(1, i));
+        dict.insert({i, string(1, i)});
     }
 
-
     if (fin.peek() != EOF) {
+        string ext;
+        while (fin.peek() != '\n') {
+            ext.push_back(fin.get());
+        }
+        string input;
+        int len = strlen(input_file);
+        for (int i = 0; i < len; ++i) {
+            input.push_back(input_file[i]);
+        }
+        input.push_back('.');
+        input += ext;
+        char filename[input.size() + 1];
+        for (int i = 0; i < input.size(); ++i) {
+            filename[i] = input[i];
+        }
+        filename[input.size()] = 0;
+        fin.get();
+
+        std::ofstream fout(filename);
+
+
         previous_code = fin.get();
         previous_string = dict[previous_code];
-        fout << previous_string;
+        string output = previous_string;
+        for (auto ch: output) {
+            fout << ch;
+        }
 
         for (char ch = 0; fin.get(ch);) {
 
@@ -213,30 +257,31 @@ Decoder::Decoder(const char *input_file, const char *output_file) : Coder(input_
 
             uint16_t bits_in_next_code = bits_in_next();
             buff.push_back(u_ch);
-            if(buff.size() >= bits_in_next_code) {
+            if (buff.size() >= bits_in_next_code) {
                 current_code = buff.get_bits(bits_in_next_code);
                 if (dict.find(current_code) != dict.end()) {
-                    std::string output = dict[current_code];
+                    string output = dict[current_code];
                     for (auto ch: output) {
                         fout << ch;
                     }
 
                     previous_string = dict[previous_code];
 
-                    current_string = dict[current_code][0];
+                    current_string.clear();
+                    current_string.push_back(dict[current_code][0]);
 
-                    dict.emplace(dict.size() + 1, previous_string + current_string);
+                    dict.insert({dict.size() + 1, previous_string + current_string});
 
                 } else {
                     previous_string = dict[previous_code];
                     current_string.clear();
                     current_string.push_back(dict[previous_code][0]);
 
-                    std::string output = previous_string + current_string;
+                    string output = previous_string + current_string;
                     for (auto ch: output) {
                         fout << ch;
                     }
-                    dict.emplace(current_code, output);
+                    dict.insert({current_code, output});
                 }
                 previous_code = current_code;
             }

@@ -8,32 +8,30 @@
 #ifndef ARCHRONIS_LIST_HPP
 #define ARCHRONIS_LIST_HPP
 
-template<typename T, typename Allocator = std::allocator<T>>
+template<typename T, typename Allocator = std::allocator <T>>
 class list {
 private:
 
     struct Node {
-
-
         T data_;
-        mutable Node *next_ = nullptr;
-        mutable Node *prev_ = nullptr;
+        mutable Node* next_ = nullptr;
+        mutable Node* prev_ = nullptr;
 
 
-        explicit Node(const T &data);
+        explicit Node(const T& data);
 
-        explicit Node(T &&data) noexcept;
+        explicit Node(T&& data) noexcept;
 
         template<typename ...Args>
-        Node(Args &&...args);
+        Node(Args&& ...args);
 
         ~Node() = default;
     };
 
     struct Border {
         char fictitious_memory[sizeof(T)];
-        mutable Node *next_ = nullptr;
-        mutable Node *prev_ = nullptr;
+        mutable Node* next_ = nullptr;
+        mutable Node* prev_ = nullptr;
     };
 
     using BorderAlloc = typename std::allocator_traits<Allocator>::template rebind_alloc<Border>;
@@ -54,72 +52,67 @@ public:
 
     ~list();
 
-    void push_back(const T &);
+    void push_back(const T&);
 
-    void push_back(T &&);
+    void push_back(T&&);
 
-    void push_front(const T &);
+    void push_front(const T&);
 
-    void push_front(T &&);
+    void push_front(T&&);
 
     void pop_back();
 
     void pop_front();
 
+    void clear();
+
+    T front() const;
+
+    T back() const;
+
     template<typename ...Args>
-    Iter emplace(const Iter &iter, Args &&...args);
+    Iter emplace(const Iter& iter, Args&& ...args);
 
-    Iter insert(const Iter &iter, const T &);
+    Iter insert(const Iter& iter, const T&);
 
-    Iter insert(const Iter &iter, T &&);
+    Iter insert(const Iter& iter, T&&);
 
-    Iter erase(const Iter &iter);
-
-//    template<typename ...Args>
-//    void emplace_back(Args &&...args);
-//
-//    template<typename ...Args>
-//    void emplace_front(Args &&...args);
+    Iter erase(const Iter& iter);
 
 
     unsigned size() const;
 
 
-    Iter begin();
+    Iter begin() const;
 
-    Iter end();
-
-    //const Iter cbegin() const;
-
-    //const Iter cend() const;
-
+    Iter end() const;
 
 private:
     unsigned size_;
-    Node *rend_;
-    Node *end_;
-    Node *head_ = nullptr;
-    Node *tail_ = nullptr;
+    Node* rend_;
+    Node* end_;
+    Node* head_ = nullptr;
+    Node* tail_ = nullptr;
     NodeAlloc node_alloc_;
     BorderAlloc border_alloc;
 
 };
 
 template<typename T, typename Allocator>
-list<T, Allocator>::Node::Node(const T &data):
+list<T, Allocator>::Node::Node(const T& data):
         data_(data),
         prev_(nullptr),
         next_(nullptr) {}
 
 template<typename T, typename Allocator>
-list<T, Allocator>::Node::Node(T &&data) noexcept:
+list<T, Allocator>::Node::Node(T&& data) noexcept:
         data_(data),
         prev_(nullptr),
         next_(nullptr) {}
 
 template<typename T, typename Allocator>
 template<typename... Args>
-list<T, Allocator>::Node::Node(Args &&... args):
+list<T, Allocator>::Node::Node(Args&& ... args):
         prev_(nullptr),
         next_(nullptr),
         data_(std::forward<Args>(args)...) {}
@@ -130,57 +123,53 @@ struct list<T, Allocator>::Iter {
 public:
     friend list;
 
-    T &operator*();
+    T& operator*() const;
 
-    const T &operator*() const;
+    T* operator->() const;
 
-    T *operator->();
-
-    const T *operator->() const;
-
-    Iter operator++();
+    Iter& operator++();
 
     const Iter operator++(int);
 
-    Iter operator--();
+    Iter& operator--();
 
     const Iter operator--(int);
 
 
-    Iter(const Iter &other);
+    Iter(const Iter& other);
 
-    Iter(Iter &&other) noexcept;
+    Iter(Iter&& other) noexcept;
 
     Iter() = default;
 
-    Iter &operator=(const Iter &other);
+    Iter& operator=(const Iter& other);
 
-    Iter &operator=(Iter &&other) noexcept;
+    Iter& operator=(Iter&& other) noexcept;
 
-    bool operator==(const Iter &other) const;
+    bool operator==(const Iter& other) const;
 
-    bool operator!=(const Iter &other) const;
+    bool operator!=(const Iter& other) const;
 
 private:
 
 
-    Node *ptr_ = nullptr;
+    mutable Node* ptr_ = nullptr;
 };
 
 
 template<typename T, typename Allocator>
-list<T, Allocator>::Iter::Iter(const list<T, Allocator>::Iter &other):
+list<T, Allocator>::Iter::Iter(const list<T, Allocator>::Iter& other):
         ptr_(other.ptr_) {}
 
 template<typename T, typename Allocator>
-list<T, Allocator>::Iter::Iter(list<T, Allocator>::Iter &&other) noexcept:
+list<T, Allocator>::Iter::Iter(list<T, Allocator>::Iter&& other) noexcept:
         ptr_(other.ptr_) {
 
     other.ptr_ = nullptr;
 }
 
 template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter &list<T, Allocator>::Iter::operator=(const list<T, Allocator>::Iter &other) {
+typename list<T, Allocator>::Iter& list<T, Allocator>::Iter::operator=(const list<T, Allocator>::Iter& other) {
     if (*this != other) {
         this->ptr_ = other.ptr_;
     }
@@ -188,7 +177,7 @@ typename list<T, Allocator>::Iter &list<T, Allocator>::Iter::operator=(const lis
 }
 
 template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter &list<T, Allocator>::Iter::operator=(list<T, Allocator>::Iter &&other) noexcept {
+typename list<T, Allocator>::Iter& list<T, Allocator>::Iter::operator=(list<T, Allocator>::Iter&& other) noexcept {
     if (*this != other) {
         this->ptr_ = other.ptr_;
         other.ptr_ = nullptr;
@@ -197,17 +186,7 @@ typename list<T, Allocator>::Iter &list<T, Allocator>::Iter::operator=(list<T, A
 }
 
 template<typename T, typename Allocator>
-T &list<T, Allocator>::Iter::operator*() {
-    return ptr_->data_;
-}
-
-template<typename T, typename Allocator>
-T *list<T, Allocator>::Iter::operator->() {
-    return &ptr_->data_;
-}
-
-template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter list<T, Allocator>::Iter::operator++() {
+typename list<T, Allocator>::Iter& list<T, Allocator>::Iter::operator++() {
     ptr_ = ptr_->next_;
     return *this;
 }
@@ -220,7 +199,7 @@ const typename list<T, Allocator>::Iter list<T, Allocator>::Iter::operator++(int
 }
 
 template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter list<T, Allocator>::Iter::operator--() {
+typename list<T, Allocator>::Iter& list<T, Allocator>::Iter::operator--() {
     ptr_ = ptr_->prev_;
     return *this;
 }
@@ -233,22 +212,22 @@ const typename list<T, Allocator>::Iter list<T, Allocator>::Iter::operator--(int
 }
 
 template<typename T, typename Allocator>
-bool list<T, Allocator>::Iter::operator==(const list<T, Allocator>::Iter &other) const {
+bool list<T, Allocator>::Iter::operator==(const list<T, Allocator>::Iter& other) const {
     return other.ptr_ == ptr_;
 }
 
 template<typename T, typename Allocator>
-bool list<T, Allocator>::Iter::operator!=(const list<T, Allocator>::Iter &other) const {
+bool list<T, Allocator>::Iter::operator!=(const list<T, Allocator>::Iter& other) const {
     return other.ptr_ != ptr_;
 }
 
 template<typename T, typename Allocator>
-const T &list<T, Allocator>::Iter::operator*() const {
+T& list<T, Allocator>::Iter::operator*() const {
     return ptr_->data_;
 }
 
 template<typename T, typename Allocator>
-const T *list<T, Allocator>::Iter::operator->() const {
+T* list<T, Allocator>::Iter::operator->() const {
     return &ptr_->data_;
 }
 //***********************************************************************************************
@@ -257,8 +236,8 @@ template<typename T, typename Allocator>
 list<T, Allocator>::list(Allocator alloc):
         size_(0),
         node_alloc_(NodeAlloc()) {
-    end_ = reinterpret_cast<Node *>(Border_traits::allocate(border_alloc, 1));//T may not have default constructor
-    rend_ = reinterpret_cast<Node *>(Border_traits::allocate(border_alloc, 1));
+    end_ = reinterpret_cast<Node*>(Border_traits::allocate(border_alloc, 1));//T may not have default constructor
+    rend_ = reinterpret_cast<Node*>(Border_traits::allocate(border_alloc, 1));
     Border_traits::construct(border_alloc, reinterpret_cast<Border*>(end_));
     Border_traits::construct(border_alloc, reinterpret_cast<Border*>(rend_));
     rend_->next_ = end_;
@@ -266,8 +245,8 @@ list<T, Allocator>::list(Allocator alloc):
 }
 
 template<typename T, typename Allocator>
-void list<T, Allocator>::push_back(const T &data) {
-    Node *ptr = Node_traits::allocate(node_alloc_, 1);
+void list<T, Allocator>::push_back(const T& data) {
+    Node* ptr = Node_traits::allocate(node_alloc_, 1);
     Node_traits::construct(node_alloc_, ptr, data);
     //
     if (size_) {
@@ -286,8 +265,8 @@ void list<T, Allocator>::push_back(const T &data) {
 }
 
 template<typename T, typename Allocator>
-void list<T, Allocator>::push_back(T &&data) {
-    Node *ptr = Node_traits::allocate(node_alloc_, 1);
+void list<T, Allocator>::push_back(T&& data) {
+    Node* ptr = Node_traits::allocate(node_alloc_, 1);
     Node_traits::construct(node_alloc_, ptr, data);
     //
     if (size_) {
@@ -306,8 +285,8 @@ void list<T, Allocator>::push_back(T &&data) {
 }
 
 template<typename T, typename Allocator>
-void list<T, Allocator>::push_front(const T &data) {
-    Node *ptr = Node_traits::allocate(node_alloc_, 1);
+void list<T, Allocator>::push_front(const T& data) {
+    Node* ptr = Node_traits::allocate(node_alloc_, 1);
     Node_traits::construct(node_alloc_, ptr, data);
     //
     if (size_) {
@@ -326,8 +305,8 @@ void list<T, Allocator>::push_front(const T &data) {
 }
 
 template<typename T, typename Allocator>
-void list<T, Allocator>::push_front(T &&data) {
-    Node *ptr = Node_traits::allocate(node_alloc_, 1);
+void list<T, Allocator>::push_front(T&& data) {
+    Node* ptr = Node_traits::allocate(node_alloc_, 1);
     Node_traits::construct(node_alloc_, ptr, data);
     //
     if (size_) {
@@ -347,7 +326,7 @@ void list<T, Allocator>::push_front(T &&data) {
 
 template<typename T, typename Allocator>
 void list<T, Allocator>::pop_back() {
-    Node *pv = tail_;
+    Node* pv = tail_;
     tail_ = tail_->prev_;
     tail_->next_ = end_;
     //end_->prev_ = tail_;
@@ -358,7 +337,7 @@ void list<T, Allocator>::pop_back() {
 
 template<typename T, typename Allocator>
 void list<T, Allocator>::pop_front() {
-    Node *pv = head_;
+    Node* pv = head_;
     head_ = head_->next_;
     head_->prev_ = rend_;
     rend_->next_ = head_;
@@ -369,8 +348,8 @@ void list<T, Allocator>::pop_front() {
 
 template<typename T, typename Allocator>
 template<typename... Args>
-typename list<T, Allocator>::Iter list<T, Allocator>::emplace(const list::Iter &iter, Args &&... args) {
-    Node *ptr = Node_traits::allocate(node_alloc_, 1);
+typename list<T, Allocator>::Iter list<T, Allocator>::emplace(const list::Iter& iter, Args&& ... args) {
+    Node* ptr = Node_traits::allocate(node_alloc_, 1);
     Node_traits::construct(node_alloc_, ptr, std::forward<Args>(args)...);
     if (size_ == 0) {
         tail_ = head_ = ptr;
@@ -378,7 +357,7 @@ typename list<T, Allocator>::Iter list<T, Allocator>::emplace(const list::Iter &
     if (iter.ptr_ == head_) {
         head_ = ptr;
     }
-    Node *prev = iter.ptr_->prev_;
+    Node* prev = iter.ptr_->prev_;
     prev->next_ = ptr;
     ptr->prev_ = prev;
     ptr->next_ = iter.ptr_;
@@ -390,8 +369,8 @@ typename list<T, Allocator>::Iter list<T, Allocator>::emplace(const list::Iter &
 }
 
 template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter list<T, Allocator>::insert(const list::Iter &iter, const T &data) {
-    Node *ptr = Node_traits::allocate(node_alloc_, 1);
+typename list<T, Allocator>::Iter list<T, Allocator>::insert(const list::Iter& iter, const T& data) {
+    Node* ptr = Node_traits::allocate(node_alloc_, 1);
     Node_traits::construct(node_alloc_, ptr, data);
     if (size_ == 0) {
         tail_ = head_ = ptr;
@@ -399,7 +378,7 @@ typename list<T, Allocator>::Iter list<T, Allocator>::insert(const list::Iter &i
     if (iter.ptr_ == head_) {
         head_ = ptr;
     }
-    Node *prev = iter.ptr_->prev_;
+    Node* prev = iter.ptr_->prev_;
     prev->next_ = ptr;
     ptr->prev_ = prev;
     ptr->next_ = iter.ptr_;
@@ -416,18 +395,18 @@ unsigned list<T, Allocator>::size() const {
 }
 
 template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter list<T, Allocator>::begin() {
+typename list<T, Allocator>::Iter list<T, Allocator>::begin() const {
     Iter begin;
-    if (size_){
+    if (size_) {
         begin.ptr_ = head_;
-    } else{
+    } else {
         begin.ptr_ = end_;
     }
     return begin;
 }
 
 template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter list<T, Allocator>::end() {
+typename list<T, Allocator>::Iter list<T, Allocator>::end() const {
     Iter end;
     end.ptr_ = end_;
     return end;
@@ -435,13 +414,15 @@ typename list<T, Allocator>::Iter list<T, Allocator>::end() {
 
 template<typename T, typename Allocator>
 list<T, Allocator>::~list() {
-    Border_traits::destroy(border_alloc, reinterpret_cast<Border *>(rend_));
-    Border_traits::deallocate(border_alloc, reinterpret_cast<Border *>(rend_), 1);
-    Border_traits::destroy(border_alloc, reinterpret_cast<Border *>(end_));
-    Border_traits::deallocate(border_alloc, reinterpret_cast<Border *>(end_), 1);
-    tail_->next_ = nullptr;
-    for (Node *pv = head_; pv;) {
-        Node *next = pv->next_;
+    Border_traits::destroy(border_alloc, reinterpret_cast<Border*>(rend_));
+    Border_traits::deallocate(border_alloc, reinterpret_cast<Border*>(rend_), 1);
+    Border_traits::destroy(border_alloc, reinterpret_cast<Border*>(end_));
+    Border_traits::deallocate(border_alloc, reinterpret_cast<Border*>(end_), 1);
+    if (tail_) {
+        tail_->next_ = nullptr;
+    }
+    for (Node* pv = head_; pv;) {
+        Node* next = pv->next_;
         Node_traits::destroy(node_alloc_, pv);
         Node_traits::deallocate(node_alloc_, pv, 1);
         pv = next;
@@ -449,16 +430,16 @@ list<T, Allocator>::~list() {
 }
 
 template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter list<T, Allocator>::insert(const list::Iter &iter, T &&data) {
-    Node *ptr = Node_traits::allocate(node_alloc_, 1);
-    Node_traits::construct(node_alloc_, ptr, data);
+typename list<T, Allocator>::Iter list<T, Allocator>::insert(const list::Iter& iter, T&& data) {
+    Node* ptr = Node_traits::allocate(node_alloc_, 1);
+    Node_traits::construct(node_alloc_, ptr, std::move(data));
     if (size_ == 0) {
         tail_ = head_ = ptr;
     }
     if (iter.ptr_ == head_) {
         head_ = ptr;
     }
-    Node *prev = iter.ptr_->prev_;
+    Node* prev = iter.ptr_->prev_;
     prev->next_ = ptr;
     ptr->prev_ = prev;
     ptr->next_ = iter.ptr_;
@@ -470,17 +451,27 @@ typename list<T, Allocator>::Iter list<T, Allocator>::insert(const list::Iter &i
 }
 
 template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter list<T, Allocator>::erase(const list::Iter &iter) {
+typename list<T, Allocator>::Iter list<T, Allocator>::erase(const list::Iter& iter) {
     Iter iter_to_return;
-    if (iter.ptr_ == end_|| iter.ptr_ == rend_){
+    if (iter.ptr_ == end_ || iter.ptr_ == rend_) {
         iter_to_return.ptr_ = end_;
-    } else{
+    } else {
         iter.ptr_->next_->prev_ = iter.ptr_->prev_;
         iter.ptr_->prev_->next = iter.ptr_->next_;
     }
     Node_traits::destroy(node_alloc_, iter.ptr_);
     Node_traits::deallocate(node_alloc_, iter.ptr_, 1);
     return iter_to_return;
+}
+
+template<typename T, typename Allocator>
+T list<T, Allocator>::front() const {
+    return head_->data_;
+}
+
+template<typename T, typename Allocator>
+T list<T, Allocator>::back() const {
+    return tail_->data_;
 }
 
 #endif //ARCHRONIS_LIST_HPP

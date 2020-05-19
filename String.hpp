@@ -1,50 +1,50 @@
 //
-// Created by artemiy on 12.05.2020.
+// Created by artemiy on 18.05.2020.
 //
 
-#ifndef ARCHRONIS_VECTOR_HPP
-#define ARCHRONIS_VECTOR_HPP
+#ifndef ARCHRONIS_STRING_HPP
+#define ARCHRONIS_STRING_HPP
 
 #include <bits/allocator.h>
 #include <memory>
 
-template<typename T, typename Allocator = std::allocator <T>>
-class vector {
+template<typename Allocator = std::allocator<char>>
+class String {
+
 private:
     using Alloc_traits = std::allocator_traits<Allocator>;
     Allocator alloc_;
     unsigned size_ = 0;
     unsigned capacity_ = 0;
-    T* array_begin_ = nullptr;
-
+    char* array_begin_ = nullptr;
 
 public:
-    vector() = default;
+    String() = default;
 
-    vector(const unsigned size, const T& data, Allocator = Allocator());
+    String(const unsigned size, const char& data, Allocator = Allocator());
 
-    vector(const unsigned size, Allocator = Allocator());
+    String(const unsigned size, Allocator = Allocator());
 
-    vector(const vector& other);
+    String(const String& other);
 
-    vector(vector&& other) /*noexcept(noexcept(std::declval<T>().T(std::move(T())))))*/;
+    String(String&& other) /*noexcept(noexcept(std::declval<T>().T(std::move(T())))))*/;
 
-    ~vector();
+    ~String();
 
     struct Iter;
     using iterator = Iter;
 
-    T& operator[](const unsigned index);
+    char& operator[](const unsigned index);
 
-    const T& operator[](const unsigned index) const;
+    const char& operator[](const unsigned index) const;
 
     unsigned size() const noexcept;
 
     unsigned capacity() const noexcept;
 
-    void push_back(const T&);
+    void push_back(const char&);
 
-    void push_back(T&&);
+    void push_back(char&&);
 
     template<typename ...Args>
     void emplace_back(Args&& ...args);
@@ -61,16 +61,24 @@ public:
 
     Iter end() const;
 
+    bool operator==(const String& other) const noexcept;
+
+    String& operator+=(const String& other);
+
+    String operator+(const String& other);
+
+    String& operator=(const String& other);
+
 };
 
-template<typename T, typename Allocator>
-struct vector<T, Allocator>::Iter {
+using string = String<std::allocator < char>>;
+
+template<typename Allocator>
+struct String<Allocator>::Iter {
 public:
-    friend vector;
+    friend String;
 
-    T& operator*() const;
-
-    T* operator->() const;
+    char& operator*() const;
 
     Iter& operator++();
 
@@ -106,112 +114,107 @@ public:
     bool operator!=(const Iter& other) const;
 
 private:
-    mutable T* ptr_ = nullptr;
+    mutable char* ptr_ = nullptr;
 };
 
-template<typename T, typename Allocator>
-T& vector<T, Allocator>::Iter::operator*() const {
+template<typename Allocator>
+char& String<Allocator>::Iter::operator*() const {
     return *ptr_;
 }
 
-template<typename T, typename Allocator>
-T* vector<T, Allocator>::Iter::operator->() const {
-    return ptr_;
-}
-
-template<typename T, typename Allocator>
-typename vector<T, Allocator>::Iter& vector<T, Allocator>::Iter::operator++() {
+template<typename Allocator>
+typename String<Allocator>::Iter& String<Allocator>::Iter::operator++() {
     ++ptr_;
     return *this;
 }
 
-template<typename T, typename Allocator>
-const typename vector<T, Allocator>::Iter vector<T, Allocator>::Iter::operator++(int) {
+template<typename Allocator>
+const typename String<Allocator>::Iter String<Allocator>::Iter::operator++(int) {
     Iter copy = *this;
     ++ptr_;
     return copy;
 }
 
-template<typename T, typename Allocator>
-typename vector<T, Allocator>::Iter& vector<T, Allocator>::Iter::operator--() {
+template<typename Allocator>
+typename String<Allocator>::Iter& String<Allocator>::Iter::operator--() {
     --ptr_;
     return *this;
 }
 
-template<typename T, typename Allocator>
-const typename vector<T, Allocator>::Iter vector<T, Allocator>::Iter::operator--(int) {
+template<typename Allocator>
+const typename String<Allocator>::Iter String<Allocator>::Iter::operator--(int) {
     Iter copy = *this;
     --ptr_;
     return copy;
 }
 
-template<typename T, typename Allocator>
-vector<T, Allocator>::Iter::Iter(const Iter& other):
+template<typename Allocator>
+String<Allocator>::Iter::Iter(const Iter& other):
         ptr_(other.ptr_) {}
 
-template<typename T, typename Allocator>
-vector<T, Allocator>::Iter::Iter(Iter&& other) noexcept:
+template<typename Allocator>
+String<Allocator>::Iter::Iter(Iter&& other) noexcept:
         ptr_(other.ptr_) {
     other.ptr_ = nullptr;
 }
 
-template<typename T, typename Allocator>
-typename vector<T, Allocator>::Iter& vector<T, Allocator>::Iter::operator=(const Iter& other) {
+template<typename Allocator>
+typename String<Allocator>::Iter& String<Allocator>::Iter::operator=(const Iter& other) {
     ptr_ = other.ptr_;
     return *this;
 }
 
-template<typename T, typename Allocator>
-typename vector<T, Allocator>::Iter& vector<T, Allocator>::Iter::operator=(Iter&& other) noexcept {
+template<typename Allocator>
+typename String<Allocator>::Iter& String<Allocator>::Iter::operator=(Iter&& other) noexcept {
     ptr_ = other.ptr_;
     other.ptr_ = nullptr;
     return *this;
 }
 
-template<typename T, typename Allocator>
-int vector<T, Allocator>::Iter::operator-(const Iter& other) {
+template<typename Allocator>
+int String<Allocator>::Iter::operator-(const Iter& other) {
     return ptr_ - other.ptr_;
 }
 
-template<typename T, typename Allocator>
-typename vector<T, Allocator>::Iter& vector<T, Allocator>::Iter::operator-=(const unsigned int i) {
+template<typename Allocator>
+typename String<Allocator>::Iter& String<Allocator>::Iter::operator-=(const unsigned int i) {
     ptr_ -= i;
     return *this;
 }
 
-template<typename T, typename Allocator>
-typename vector<T, Allocator>::Iter& vector<T, Allocator>::Iter::operator+=(const unsigned int i) {
+template<typename Allocator>
+typename String<Allocator>::Iter& String<Allocator>::Iter::operator+=(const unsigned int i) {
     ptr_ += i;
     return *this;
 }
 
-template<typename T, typename Allocator>
-typename vector<T, Allocator>::Iter vector<T, Allocator>::Iter::operator+(const unsigned int i) {
+template<typename Allocator>
+typename String<Allocator>::Iter String<Allocator>::Iter::operator+(const unsigned int i) {
     Iter it;
     it.ptr_ = ptr_ + i;
     return it;
 }
 
-template<typename T, typename Allocator>
-typename vector<T, Allocator>::Iter vector<T, Allocator>::Iter::operator-(const unsigned int i) {
+template<typename Allocator>
+typename String<Allocator>::Iter String<Allocator>::Iter::operator-(const unsigned int i) {
     Iter it;
     it.ptr_ = ptr_ - i;
     return it;
 }
 
-template<typename T, typename Allocator>
-bool vector<T, Allocator>::Iter::operator==(const vector<T, Allocator>::Iter& other) const {
+template<typename Allocator>
+bool String<Allocator>::Iter::operator==(const String<Allocator>::Iter& other) const {
     return ptr_ == other.ptr_;
 }
 
-template<typename T, typename Allocator>
-bool vector<T, Allocator>::Iter::operator!=(const vector<T, Allocator>::Iter& other) const {
+template<typename Allocator>
+bool String<Allocator>::Iter::operator!=(const String<Allocator>::Iter& other) const {
     return ptr_ != other.ptr_;
 }
 
 
-template<typename T, typename Allocator>
-vector<T, Allocator>::vector(const unsigned int size, const T& data, Allocator alloc): alloc_(alloc) {
+template<typename Allocator>
+String<Allocator>::String(const unsigned int size, const char& data, Allocator alloc): alloc_(alloc) {
     capacity_ = size_ = size;
     array_begin_ = Alloc_traits::allocate(alloc_, size);
     for (unsigned i = 0; i < size; ++i) {
@@ -219,8 +222,8 @@ vector<T, Allocator>::vector(const unsigned int size, const T& data, Allocator a
     }
 }
 
-template<typename T, typename Allocator>
-vector<T, Allocator>::vector(const unsigned int size, Allocator alloc) : alloc_(alloc) {
+template<typename Allocator>
+String<Allocator>::String(const unsigned int size, Allocator alloc) : alloc_(alloc) {
     capacity_ = size_ = size;
     array_begin_ = Alloc_traits::allocate(alloc_, size);
     for (unsigned i = 0; i < size; ++i) {
@@ -228,61 +231,61 @@ vector<T, Allocator>::vector(const unsigned int size, Allocator alloc) : alloc_(
     }
 }
 
-template<typename T, typename Allocator>
-vector<T, Allocator>::~vector() {
+template<typename Allocator>
+String<Allocator>::~String() {
     for (unsigned i = 0; i < size_; ++i) {
         Alloc_traits::destroy(alloc_, array_begin_ + i);
     }
     Alloc_traits::deallocate(alloc_, array_begin_, size_);
 }
 
-template<typename T, typename Allocator>
-T& vector<T, Allocator>::operator[](const unsigned int index) {
+template<typename Allocator>
+char& String<Allocator>::operator[](const unsigned int index) {
     return *(array_begin_ + index);
 }
 
-template<typename T, typename Allocator>
-const T& vector<T, Allocator>::operator[](const unsigned int index) const {
+template<typename Allocator>
+const char& String<Allocator>::operator[](const unsigned int index) const {
     return *(array_begin_ + index);
 }
 
 
-template<typename T, typename Allocator>
-unsigned vector<T, Allocator>::size() const noexcept {
+template<typename Allocator>
+unsigned String<Allocator>::size() const noexcept {
     return size_;
 }
 
-template<typename T, typename Allocator>
-unsigned vector<T, Allocator>::capacity() const noexcept {
+template<typename Allocator>
+unsigned String<Allocator>::capacity() const noexcept {
     return capacity_;
 }
 
-template<typename T, typename Allocator>
-typename vector<T, Allocator>::Iter vector<T, Allocator>::begin() const {
+template<typename Allocator>
+typename String<Allocator>::Iter String<Allocator>::begin() const {
     Iter it;
     it.ptr_ = array_begin_;
     return it;
 }
 
-template<typename T, typename Allocator>
-typename vector<T, Allocator>::Iter vector<T, Allocator>::end() const {
+template<typename Allocator>
+typename String<Allocator>::Iter String<Allocator>::end() const {
     Iter it;
     it.ptr_ = array_begin_ + size_;
     return it;
 }
 
-template<typename T, typename Allocator>
-void vector<T, Allocator>::pop_back() {
+template<typename Allocator>
+void String<Allocator>::pop_back() {
     Alloc_traits::destroy(alloc_, array_begin_ + --size_);
 }
 
-template<typename T, typename Allocator>
-void vector<T, Allocator>::push_back(const T& data) {
+template<typename Allocator>
+void String<Allocator>::push_back(const char& data) {
     if (size_ + 1 <= capacity_) {
         Alloc_traits::construct(alloc_, array_begin_ + size_, data);
         ++size_;
     } else {
-        T* new_array_begin = Alloc_traits::allocate(alloc_, size_ * 2);
+        char* new_array_begin = Alloc_traits::allocate(alloc_, size_ * 2);
         Alloc_traits::construct(alloc_, new_array_begin + size_, data);
 
         for (unsigned i = 0; i < size_; ++i) {
@@ -300,13 +303,13 @@ void vector<T, Allocator>::push_back(const T& data) {
     }
 }
 
-template<typename T, typename Allocator>
-void vector<T, Allocator>::push_back(T&& data) {
+template<typename Allocator>
+void String<Allocator>::push_back(char&& data) {
     if (size_ + 1 <= capacity_) {
         Alloc_traits::construct(alloc_, array_begin_ + size_, data);
         ++size_;
     } else {
-        T* new_array_begin = Alloc_traits::allocate(alloc_, size_ * 2);
+        char* new_array_begin = Alloc_traits::allocate(alloc_, size_ * 2);
         Alloc_traits::construct(alloc_, new_array_begin + size_, data);
 
         for (unsigned i = 0; i < size_; ++i) {
@@ -324,14 +327,14 @@ void vector<T, Allocator>::push_back(T&& data) {
     }
 }
 
-template<typename T, typename Allocator>
+template<typename Allocator>
 template<typename... Args>
-void vector<T, Allocator>::emplace_back(Args&& ... args) {
+void String<Allocator>::emplace_back(Args&& ... args) {
     if (size_ + 1 <= capacity_) {
         Alloc_traits::construct(alloc_, array_begin_ + size_, std::forward<Args>(args)...);
         ++size_;
     } else {
-        T* new_array_begin = Alloc_traits::allocate(alloc_, size_ * 2);
+        char* new_array_begin = Alloc_traits::allocate(alloc_, size_ * 2);
         Alloc_traits::construct(alloc_, new_array_begin + size_, std::forward<Args>(args)...);
 
         for (unsigned i = 0; i < size_; ++i) {
@@ -349,20 +352,19 @@ void vector<T, Allocator>::emplace_back(Args&& ... args) {
     }
 }
 
-template<typename T, typename Allocator>
-vector<T, Allocator>::vector(const vector& other) {
+template<typename Allocator>
+String<Allocator>::String(const String& other) {
     capacity_ = other.capacity_;
     size_ = other.size_;
     array_begin_ = Alloc_traits::allocate(alloc_, capacity_);
 
     for (unsigned i = 0; i < size_; ++i) {
-        Alloc_traits :
-        construct(alloc_, array_begin_ + i, other[i]);
+        Alloc_traits::construct(alloc_, array_begin_ + i, other[i]);
     }
 }
 
-template<typename T, typename Allocator>
-vector<T, Allocator>::vector(vector&& other) {
+template<typename Allocator>
+String<Allocator>::String(String&& other) {
     capacity_ = other.capacity_;
     size_ = other.size_;
     array_begin_ = Alloc_traits::allocate(alloc_, capacity_);
@@ -375,8 +377,8 @@ vector<T, Allocator>::vector(vector&& other) {
     other.array_begin_ = nullptr;
 }
 
-template<typename T, typename Allocator>
-void vector<T, Allocator>::resize(const unsigned int new_size) {
+template<typename Allocator>
+void String<Allocator>::resize(const unsigned int new_size) {
     if (new_size > size_) {
         if (size_ <= capacity_) {
             for (unsigned i = size_; i < new_size; ++i) {
@@ -385,7 +387,7 @@ void vector<T, Allocator>::resize(const unsigned int new_size) {
             size_ = new_size;
         } else {
 
-            T* new_array_begin = Alloc_traits::allocate(alloc_, capacity_ * 2);
+            char* new_array_begin = Alloc_traits::allocate(alloc_, capacity_ * 2);
             for (unsigned i = size_; i < new_size; ++i) {
                 Alloc_traits::construct(alloc_, new_array_begin + i);
             }
@@ -407,18 +409,18 @@ void vector<T, Allocator>::resize(const unsigned int new_size) {
 
 }
 
-template<typename T, typename Allocator>
-void vector<T, Allocator>::clear() {
+template<typename Allocator>
+void String<Allocator>::clear() {
     for (unsigned i = 0; i < size_; ++i) {
         Alloc_traits::destroy(alloc_, array_begin_ + i);
     }
     size_ = 0;
 }
 
-template<typename T, typename Allocator>
-void vector<T, Allocator>::reserve(const unsigned int new_capacity) {
+template<typename Allocator>
+void String<Allocator>::reserve(const unsigned int new_capacity) {
     if (new_capacity > capacity_) {
-        T* new_array_begin = Alloc_traits::allocate(alloc_, new_capacity);
+        char* new_array_begin = Alloc_traits::allocate(alloc_, new_capacity);
 
         for (unsigned i = 0; i < size_; ++i) {
             Alloc_traits::construct(alloc_, new_array_begin + i, std::move_if_noexcept(array_begin_[i]));
@@ -435,5 +437,53 @@ void vector<T, Allocator>::reserve(const unsigned int new_capacity) {
 
 }
 
+template<typename Allocator>
+bool String<Allocator>::operator==(const String& other) const noexcept {
+    if (size_ != other.size_) {
+        return false;
+    }
+    for (int i = 0; i < size_; ++i) {
+        if (array_begin_[i] != other[i]) {
+            return false;
+        }
+    }
+    return true;
+}
 
-#endif //ARCHRONIS_VECTOR_HPP
+template<typename Allocator>
+String<Allocator>& String<Allocator>::operator+=(const String& other) {
+
+    reserve(size_ + other.size_);
+
+
+    for (int i = 0; i < other.size_; ++i) {
+        array_begin_[size_ + i] = other[i];
+    }
+
+    size_ = size_ + other.size_;
+
+    return *this;
+}
+
+template<typename Allocator>
+String<Allocator> String<Allocator>::operator+(const String& other) {
+    String str;
+    str += *this;
+    str += other;
+    return str;
+}
+
+template<typename Allocator>
+String<Allocator>& String<Allocator>::operator=(const String& other) {
+    reserve(other.size_);
+    for (int i = 0; i < other.size_; ++i) {
+        array_begin_[i] = other[i];
+    }
+
+    size_ = other.size_;
+
+    return *this;
+}
+
+
+#endif //ARCHRONIS_STRING_HPP
