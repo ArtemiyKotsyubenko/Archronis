@@ -13,8 +13,6 @@ class list {
 private:
 
     struct Node {
-
-
         T data_;
         mutable Node *next_ = nullptr;
         mutable Node *prev_ = nullptr;
@@ -66,6 +64,12 @@ public:
 
     void pop_front();
 
+    void clear();
+
+    T front();
+
+    T back();
+
     template<typename ...Args>
     Iter emplace(const Iter &iter, Args &&...args);
 
@@ -85,9 +89,9 @@ public:
     unsigned size() const;
 
 
-    Iter begin();
+    Iter begin() const;
 
-    Iter end();
+    Iter end()const;
 
     //const Iter cbegin() const;
 
@@ -138,11 +142,11 @@ public:
 
     const T *operator->() const;
 
-    Iter operator++();
+    Iter& operator++();
 
     const Iter operator++(int);
 
-    Iter operator--();
+    Iter& operator--();
 
     const Iter operator--(int);
 
@@ -207,7 +211,7 @@ T *list<T, Allocator>::Iter::operator->() {
 }
 
 template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter list<T, Allocator>::Iter::operator++() {
+typename list<T, Allocator>::Iter& list<T, Allocator>::Iter::operator++() {
     ptr_ = ptr_->next_;
     return *this;
 }
@@ -220,7 +224,7 @@ const typename list<T, Allocator>::Iter list<T, Allocator>::Iter::operator++(int
 }
 
 template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter list<T, Allocator>::Iter::operator--() {
+typename list<T, Allocator>::Iter& list<T, Allocator>::Iter::operator--() {
     ptr_ = ptr_->prev_;
     return *this;
 }
@@ -416,7 +420,7 @@ unsigned list<T, Allocator>::size() const {
 }
 
 template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter list<T, Allocator>::begin() {
+typename list<T, Allocator>::Iter list<T, Allocator>::begin() const {
     Iter begin;
     if (size_){
         begin.ptr_ = head_;
@@ -427,7 +431,7 @@ typename list<T, Allocator>::Iter list<T, Allocator>::begin() {
 }
 
 template<typename T, typename Allocator>
-typename list<T, Allocator>::Iter list<T, Allocator>::end() {
+typename list<T, Allocator>::Iter list<T, Allocator>::end() const {
     Iter end;
     end.ptr_ = end_;
     return end;
@@ -439,7 +443,9 @@ list<T, Allocator>::~list() {
     Border_traits::deallocate(border_alloc, reinterpret_cast<Border *>(rend_), 1);
     Border_traits::destroy(border_alloc, reinterpret_cast<Border *>(end_));
     Border_traits::deallocate(border_alloc, reinterpret_cast<Border *>(end_), 1);
-    tail_->next_ = nullptr;
+    if(tail_){
+        tail_->next_ = nullptr;
+    }
     for (Node *pv = head_; pv;) {
         Node *next = pv->next_;
         Node_traits::destroy(node_alloc_, pv);
@@ -482,5 +488,35 @@ typename list<T, Allocator>::Iter list<T, Allocator>::erase(const list::Iter &it
     Node_traits::deallocate(node_alloc_, iter.ptr_, 1);
     return iter_to_return;
 }
+
+template<typename T, typename Allocator>
+T list<T, Allocator>::front() {
+    return head_->data_;
+}
+
+template<typename T, typename Allocator>
+T list<T, Allocator>::back() {
+    return tail_->data_;
+}
+
+//template<typename T, typename Allocator>
+//void list<T, Allocator>::clear() {
+//    if(tail_){
+//        tail_->next_ = nullptr;
+//    }
+//    for (Node *pv = head_; pv;) {
+//        Node *next = pv->next_;
+//        Node_traits::destroy(node_alloc_, pv);
+//        Node_traits::deallocate(node_alloc_, pv, 1);
+//        pv = next;
+//    }
+//    head_ = tail_ = nullptr;
+//    rend_->next_ = end_;
+//    end_->prev_ = rend_;
+//    size_ = 0;
+//
+//
+//
+//}
 
 #endif //ARCHRONIS_LIST_HPP
